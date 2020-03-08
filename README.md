@@ -1,6 +1,6 @@
-# serial
+# POSIX Serial Port
 
-POSIX serial port.
+POSIX serial port for Go.
 
 ## Copyright and Licensing
 
