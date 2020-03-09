@@ -1,6 +1,7 @@
 package serial
 
 import (
+	"errors"
 	"io"
 	"syscall"
 	"time"
@@ -38,10 +39,16 @@ const (
 	BaudRate2400
 	// BaudRate4800 is a baud rate of 4800 bps
 	BaudRate4800
+	// BaudRate7200 is a baud rate of 7200 bps
+	BaudRate7200
 	// BaudRate9600 is a baud rate of 9600 bps
 	BaudRate9600
+	// BaudRate14400 is a baud rate of 14400 bps
+	BaudRate14400
 	// BaudRate19200 is a baud rate of 19200 bps
 	BaudRate19200
+	// BaudRate28800 is a baud rate of 28800 bps
+	BaudRate28800
 	// BaudRate38400 is a baud rate of 38400 bps
 	BaudRate38400
 	// BaudRate57600 is a baud rate of 57600 bps
@@ -52,28 +59,6 @@ const (
 	BaudRate115200
 	// BaudRate230400 is a baud rate of 230400 bps
 	BaudRate230400
-	// BaudRate460800 is a baud rate of 460800 bps
-	BaudRate460800
-	// BaudRate576000 is a baud rate of 576000 bps
-	BaudRate576000
-	// BaudRate921600 is a baud rate of 921600 bps
-	BaudRate921600
-	// BaudRate1000000 is a baud rate of 1000000 bps
-	BaudRate1000000
-	// BaudRate1152000 is a baud rate of 1152000 bps
-	BaudRate1152000
-	// BaudRate2000000 is a baud rate of 2000000 bps
-	BaudRate2000000
-	// BaudRate2304000 is a baud rate of 2304000 bps
-	BaudRate2304000
-	// BaudRate2500000 is a baud rate of 2500000 bps
-	BaudRate2500000
-	// BaudRate3000000 is a baud rate of 3000000 bps
-	BaudRate3000000
-	// BaudRate3500000 is a baud rate of 3500000 bps
-	BaudRate3500000
-	// BaudRate4000000 is a baud rate of 4000000 bps
-	BaudRate4000000
 )
 
 // Parity is the partity type.
@@ -114,17 +99,29 @@ const (
 
 // Port defines the interface for a POSIX serial port.
 type Port interface {
+	// Path returns the path.
 	Path() string
+	// BaudRate returns the current baud rate.
 	BaudRate() BaudRate
+	// SetBaudRate changes the baud rate.
 	SetBaudRate(baudRate BaudRate) error
+	// Parity returns the current parity check setting.
 	Parity() Parity
+	// SetParity changes the parity check setting.
 	SetParity(parity Parity) error
+	// DataBits returns the current data bits setting.
 	DataBits() DataBits
+	// SetDataBits changes the data bits setting.
 	SetDataBits(dataBits DataBits) error
+	// StopBits returns the current stop bits setting.
 	StopBits() StopBits
+	// SetStopBits changes the stop bits setting.
 	SetStopBits(stopBits StopBits) error
+	// SetDeadline changes the read and write deadlines.
 	SetDeadline(time.Time) error
+	// SetReadDeadline changes the read deadline.
 	SetReadDeadline(time.Time) error
+	// SetWriteDeadline changes the write deadline.
 	SetWriteDeadline(time.Time) error
 	io.Reader
 	io.Writer
@@ -207,6 +204,83 @@ func (port *posixPort) BaudRate() BaudRate {
 }
 
 func (port *posixPort) SetBaudRate(baudRate BaudRate) error {
+	if baudRate == port.baudRate {
+		return nil
+	}
+	termios, err := unix.IoctlGetTermios(port.fd, unix.TIOCGETA)
+	if err != nil {
+		return err
+	}
+	switch baudRate {
+	case BaudRate0:
+		termios.Ispeed = unix.B0
+		termios.Ospeed = unix.B0
+	case BaudRate50:
+		termios.Ispeed = unix.B50
+		termios.Ospeed = unix.B50
+	case BaudRate75:
+		termios.Ispeed = unix.B75
+		termios.Ospeed = unix.B75
+	case BaudRate110:
+		termios.Ispeed = unix.B110
+		termios.Ospeed = unix.B110
+	case BaudRate150:
+		termios.Ispeed = unix.B150
+		termios.Ospeed = unix.B150
+	case BaudRate200:
+		termios.Ispeed = unix.B200
+		termios.Ospeed = unix.B200
+	case BaudRate300:
+		termios.Ispeed = unix.B300
+		termios.Ospeed = unix.B300
+	case BaudRate600:
+		termios.Ispeed = unix.B600
+		termios.Ospeed = unix.B600
+	case BaudRate1200:
+		termios.Ispeed = unix.B1200
+		termios.Ospeed = unix.B1200
+	case BaudRate1800:
+		termios.Ispeed = unix.B1800
+		termios.Ospeed = unix.B1800
+	case BaudRate2400:
+		termios.Ispeed = unix.B2400
+		termios.Ospeed = unix.B2400
+	case BaudRate4800:
+		termios.Ispeed = unix.B4800
+		termios.Ospeed = unix.B4800
+	case BaudRate7200:
+		termios.Ispeed = unix.B7200
+		termios.Ospeed = unix.B7200
+	case BaudRate9600:
+		termios.Ispeed = unix.B9600
+		termios.Ospeed = unix.B9600
+	case BaudRate14400:
+		termios.Ispeed = unix.B14400
+		termios.Ospeed = unix.B14400
+	case BaudRate19200:
+		termios.Ispeed = unix.B19200
+		termios.Ospeed = unix.B19200
+	case BaudRate28800:
+		termios.Ispeed = unix.B28800
+		termios.Ospeed = unix.B28800
+	case BaudRate38400:
+		termios.Ispeed = unix.B38400
+		termios.Ospeed = unix.B38400
+	case BaudRate57600:
+		termios.Ispeed = unix.B57600
+		termios.Ospeed = unix.B57600
+	case BaudRate115200:
+		termios.Ispeed = unix.B115200
+		termios.Ospeed = unix.B115200
+	case BaudRate230400:
+		termios.Ispeed = unix.B230400
+		termios.Ospeed = unix.B230400
+	default:
+		return errors.New("invalid baud rate")
+	}
+	if err = unix.IoctlSetTermios(port.fd, unix.TIOCSETA, termios); err != nil {
+		return err
+	}
 	port.baudRate = baudRate
 	return nil
 }
@@ -216,6 +290,27 @@ func (port *posixPort) Parity() Parity {
 }
 
 func (port *posixPort) SetParity(parity Parity) error {
+	if parity == port.parity {
+		return nil
+	}
+	termios, err := unix.IoctlGetTermios(port.fd, unix.TIOCGETA)
+	if err != nil {
+		return err
+	}
+	termios.Cflag &^= (unix.PARENB | unix.PARODD)
+	switch parity {
+	case ParityNone:
+		break
+	case ParityOdd:
+		termios.Cflag |= unix.PARODD
+	case ParityEven:
+		termios.Cflag |= unix.PARENB
+	default:
+		return errors.New("invalid parity")
+	}
+	if err = unix.IoctlSetTermios(port.fd, unix.TIOCSETA, termios); err != nil {
+		return err
+	}
 	port.parity = parity
 	return nil
 }
@@ -225,6 +320,29 @@ func (port *posixPort) DataBits() DataBits {
 }
 
 func (port *posixPort) SetDataBits(dataBits DataBits) error {
+	if dataBits == port.dataBits {
+		return nil
+	}
+	termios, err := unix.IoctlGetTermios(port.fd, unix.TIOCGETA)
+	if err != nil {
+		return err
+	}
+	termios.Cflag &^= unix.CSIZE
+	switch dataBits {
+	case DataBits5:
+		termios.Cflag |= unix.CS5
+	case DataBits6:
+		termios.Cflag |= unix.CS6
+	case DataBits7:
+		termios.Cflag |= unix.CS7
+	case DataBits8:
+		termios.Cflag |= unix.CS8
+	default:
+		return errors.New("invalid data bits")
+	}
+	if err = unix.IoctlSetTermios(port.fd, unix.TIOCSETA, termios); err != nil {
+		return err
+	}
 	port.dataBits = dataBits
 	return nil
 }
@@ -234,6 +352,25 @@ func (port *posixPort) StopBits() StopBits {
 }
 
 func (port *posixPort) SetStopBits(stopBits StopBits) error {
+	if stopBits == port.stopBits {
+		return nil
+	}
+	termios, err := unix.IoctlGetTermios(port.fd, unix.TIOCGETA)
+	if err != nil {
+		return err
+	}
+	termios.Cflag &^= unix.CSTOPB
+	switch stopBits {
+	case StopBits1:
+		break
+	case StopBits2:
+		termios.Cflag |= unix.CSTOPB
+	default:
+		return errors.New("invalid stop bits")
+	}
+	if err = unix.IoctlSetTermios(port.fd, unix.TIOCSETA, termios); err != nil {
+		return err
+	}
 	port.stopBits = stopBits
 	return nil
 }
@@ -249,11 +386,13 @@ func (port *posixPort) SetDeadline(deadline time.Time) error {
 }
 
 func (port *posixPort) SetReadDeadline(deadline time.Time) error {
+	// TODO can this be invalid?
 	port.readDeadline = deadline
 	return nil
 }
 
 func (port *posixPort) SetWriteDeadline(deadline time.Time) error {
+	// TODO can this be invalid?
 	port.writeDeadline = deadline
 	return nil
 }
@@ -261,7 +400,31 @@ func (port *posixPort) SetWriteDeadline(deadline time.Time) error {
 func (port *posixPort) Read(p []byte) (n int, err error) {
 	n = 0
 	err = nil
-	return
+	if len(p) == 0 {
+		return
+	}
+	read := 0
+	for {
+		read, err = unix.Read(port.fd, p[n:])
+		if err != nil {
+			if err != syscall.EAGAIN {
+				return
+			}
+			time.Sleep(time.Duration(1) * time.Millisecond)
+		} else {
+			n += read
+			if n == len(p) {
+				return
+			}
+		}
+		if port.writeDeadline.IsZero() {
+			return
+		}
+		if time.Now().After(port.writeDeadline) {
+			err = syscall.ETIMEDOUT
+			return
+		}
+	}
 }
 
 func (port *posixPort) Write(p []byte) (n int, err error) {
