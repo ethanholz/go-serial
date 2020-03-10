@@ -31,5 +31,14 @@ func main() {
 	}
 	defer port.Close()
 	port.Write([]byte("Hello World via serial\n"))
+	data := make([]byte, 10)
+	n, err := port.Read(data)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Read %d bytes\n", n)
+	if n > 0 {
+		fmt.Println(string(data))
+	}
 }
 ```

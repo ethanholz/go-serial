@@ -410,7 +410,6 @@ func (port *posixPort) Read(p []byte) (n int, err error) {
 			if err != syscall.EAGAIN {
 				return
 			}
-			time.Sleep(time.Duration(1) * time.Millisecond)
 		} else {
 			n += read
 			if n == len(p) {
@@ -423,6 +422,9 @@ func (port *posixPort) Read(p []byte) (n int, err error) {
 		if time.Now().After(port.writeDeadline) {
 			err = syscall.ETIMEDOUT
 			return
+		}
+		if err != nil || n == 0 {
+			time.Sleep(time.Duration(1) * time.Millisecond)
 		}
 	}
 }
