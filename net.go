@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+type addr struct {
+	path string
+}
 type conn struct {
 	port Port
 }
@@ -33,13 +36,20 @@ func (conn *conn) Close() error {
 }
 
 func (conn *conn) LocalAddr() net.Addr {
-	// TODO
-	return nil
+	ip := make([]byte, 4)
+	ip[0] = 127
+	ip[1] = 0
+	ip[2] = 0
+	ip[3] = 1
+	return &net.IPAddr{
+		IP: ip,
+	}
 }
 
 func (conn *conn) RemoteAddr() net.Addr {
-	// TODO
-	return nil
+	return &addr{
+		path: conn.port.Path(),
+	}
 }
 
 func (conn *conn) SetDeadline(deadline time.Time) error {
@@ -52,4 +62,12 @@ func (conn *conn) SetReadDeadline(deadline time.Time) error {
 
 func (conn *conn) SetWriteDeadline(deadline time.Time) error {
 	return conn.port.SetReadDeadline(deadline)
+}
+
+func (addr *addr) Network() string {
+	return "serial"
+}
+
+func (addr *addr) String() string {
+	return addr.path
 }
