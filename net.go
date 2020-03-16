@@ -25,21 +25,42 @@ import (
 	"time"
 )
 
-type addr struct {
-	path string
+// PortConn is a net.Conn specialization for a serial.Port
+type PortConn interface {
+	net.Conn
+	Port() Port
 }
-type conn struct {
+
+// PortAddr is a net.Addr implementation for a serial.Port
+type PortAddr struct {
 	port Port
 }
 
+type conn struct {
+	port       Port
+	localAddr  *net.IPAddr
+	remoteAddr *PortAddr
+}
+
 // Dial creates a connection using a serial port.
-func Dial(path string, baudRate BaudRate, parity Parity, dataBits DataBits, stopBits StopBits) (net.Conn, error) {
+func Dial(path string, baudRate BaudRate, parity Parity, dataBits DataBits, stopBits StopBits) (PortConn, error) {
 	port, err := NewPort(path, baudRate, parity, dataBits, stopBits)
 	if err != nil {
 		return nil, err
 	}
+	ip := make([]byte, 4)
+	ip[0] = 127
+	ip[1] = 0
+	ip[2] = 0
+	ip[3] = 1
 	return &conn{
 		port: port,
+		localAddr: &net.IPAddr{
+			IP: ip,
+		},
+		remoteAddr: &PortAddr{
+			port: port,
+		},
 	}, nil
 }
 
@@ -56,20 +77,11 @@ func (conn *conn) Close() error {
 }
 
 func (conn *conn) LocalAddr() net.Addr {
-	ip := make([]byte, 4)
-	ip[0] = 127
-	ip[1] = 0
-	ip[2] = 0
-	ip[3] = 1
-	return &net.IPAddr{
-		IP: ip,
-	}
+	return conn.localAddr
 }
 
 func (conn *conn) RemoteAddr() net.Addr {
-	return &addr{
-		path: conn.port.Path(),
-	}
+	return conn.remoteAddr
 }
 
 func (conn *conn) SetDeadline(deadline time.Time) error {
@@ -84,10 +96,16 @@ func (conn *conn) SetWriteDeadline(deadline time.Time) error {
 	return conn.port.SetReadDeadline(deadline)
 }
 
-func (addr *addr) Network() string {
+func (conn *conn) Port() Port {
+	return conn.port
+}
+
+// Network returns the network name ("serial")
+func (addr *PortAddr) Network() string {
 	return "serial"
 }
 
-func (addr *addr) String() string {
-	return addr.path
+// String returns the string representation of the addres (port path)
+func (addr *PortAddr) String() string {
+	return addr.port.Path()
 }
