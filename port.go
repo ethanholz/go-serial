@@ -189,6 +189,8 @@ func NewPort(path string, baudRate BaudRate, parity Parity, dataBits DataBits, s
 	termios.Oflag = 0
 	termios.Cc[16] = 0
 	termios.Cc[17] = 0
+	termios.Ispeed = unix.B9600
+	termios.Ospeed = unix.B9600
 	if err = unix.IoctlSetTermios(fd, unix.TIOCSETA, termios); err != nil {
 		return nil, err
 	}
@@ -436,15 +438,15 @@ func (port *posixPort) Read(p []byte) (n int, err error) {
 				return
 			}
 		}
-		if port.writeDeadline.IsZero() {
+		if port.readDeadline.IsZero() {
 			return
 		}
-		if time.Now().After(port.writeDeadline) {
+		if time.Now().After(port.readDeadline) {
 			err = syscall.ETIMEDOUT
 			return
 		}
 		if err != nil || n == 0 {
-			time.Sleep(time.Duration(1) * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 }
@@ -462,7 +464,7 @@ func (port *posixPort) Write(p []byte) (n int, err error) {
 			if err != syscall.EAGAIN {
 				return
 			}
-			time.Sleep(time.Duration(1) * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		} else {
 			n += written
 			if n == len(p) {
