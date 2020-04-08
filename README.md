@@ -16,6 +16,14 @@ See `LICENSE.txt`
 go get -u github.com/peterhagelund/go-serial
 ```
 
+### Using modules
+
+In `go.mod`:
+
+```
+require "githib.com/peterhagelund/go-serial" v0.4.0
+```
+
 ## Using
 ```go
 package main
