@@ -21,7 +21,7 @@ go get -u github.com/peterhagelund/go-serial
 In `go.mod`:
 
 ```
-require "githib.com/peterhagelund/go-serial" v0.4.0
+require "githib.com/peterhagelund/go-serial" v0.4.2
 ```
 
 ## Using
